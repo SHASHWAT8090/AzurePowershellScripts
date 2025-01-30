@@ -1,0 +1,54 @@
+
+
+# get information to create AAD security groups from CSV file
+if(Test-Path "C:\Users\Shashwat.S.Kumar2\OneDrive - Shell\Desktop\Laptop backup\PowerShell Scripts\MCStrategic\test_temp.csv")
+{
+    $groups= Import-Csv "C:\Users\Shashwat.S.Kumar2\OneDrive - Shell\Desktop\Laptop backup\PowerShell Scripts\MCStrategic\test_temp.csv"
+    Get-date
+    
+    foreach($group in $groups)
+    {
+        $members=$group.members.split(";")
+        $groupinfo = Get-AzureADGroup -SearchString $group.Groups
+        Write-Output $members
+
+        foreach($member in $members)
+        {
+
+            if($meminfo= Get-AzureADUser -objectID $member)
+            {
+                try
+                {
+                    Remove-AzureADGroupMember -ObjectId $groupinfo.ObjectId -MemberId $meminfo.ObjectId
+                    Write-host  "The member $member were removed from the group $($groupinfo.DisplayName) $membersinfo" -ForegroundColor Green
+                    #Add-AzureADGroupMember -ObjectId $groupinfo.ObjectId -RefObjectId $meminfo.ObjectId -ErrorAction Stop
+                    #Remove-AzureADGroupMember -ObjectId $groupinfo.objectid -MemberId $meminfo.objectid.guid -ErrorAction Stop
+#$membersinfo=$((Get-AzureADGroupMember -ObjecstId $groupinfo.objectid |?{$_.objecttype -eq "user"}|Get-AzureDUser).UserPrincipalName -join ";")
+#$membersinfo+=";"
+#$membersinfo+=$((Get-AzureADGroupMember -ObjectId $groupinfo.objectid |?{$_.objecttype -eq "group"}|Get-AzureADGroup).displayname -join ";")
+
+#sleep 1
+                }
+                catch
+                {
+                    Write-host "Not able to remove $member from the group $($groupinfo.DisplayName)" -ForegroundColor Red
+                }
+            }
+
+            else
+            {
+                Write-host "User $member does not exist on Azure AD" -ForegroundColor Red
+            }
+        }
+
+        #Write-host  "All these members were removed to the group $($groupinfo.DisplayName) $membersinfo"
+    
+    }
+
+
+}
+else
+{
+    Write-Output "Input file not found"
+}
+

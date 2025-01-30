@@ -1,0 +1,50 @@
+
+# CSV file needs to contain 2 columns for AD-Groups ("Groups") and Member names (Members)
+# get information to create AAD security groups from CSV file
+if(Test-Path "C:\Users\Shashwat.S.Kumar2\OneDrive - Shell\Desktop\Laptop backup\PowerShell Scripts\MCStrategic\test_temp.csv")
+{
+    $groups= Import-Csv "C:\Users\Shashwat.S.Kumar2\OneDrive - Shell\Desktop\Laptop backup\PowerShell Scripts\MCStrategic\test_temp.csv"
+    Get-date
+    foreach($group in $groups)
+    {
+        $members=$group.members.split(";")
+        $groupinfo = Get-AzureADGroup -SearchString $group.Groups
+
+        foreach($member in $members)
+        {
+
+            if($meminfo= Get-AzureADUser -objectID $member)
+            {
+                try
+                {
+                    Add-AzureADGroupMember -ObjectId $groupinfo.ObjectId -RefObjectId $meminfo.ObjectId -ErrorAction Stop
+                    Write-host  "The member $member were added as member to the group $($groupinfo.DisplayName) $membersinfo" -ForegroundColor Green
+                    #Remove-AzureADGroupMember -ObjectId $groupinfo.objectid -MemberId $meminfo.objectid.guid -ErrorAction Stop
+#$membersinfo=$((Get-AzureADGroupMember -ObjectId $groupinfo.objectid |?{$_.objecttype -eq "user"}|Get-AzureDUser).UserPrincipalName -join ";")
+#$membersinfo+=";"
+#$membersinfo+=$((Get-AzureADGroupMember -ObjectId $groupinfo.objectid |?{$_.objecttype -eq "group"}|Get-AzureADGroup).displayname -join ";")
+
+#sleep 1
+                }
+                catch
+                {
+                    Write-host "Not able to add $member to group $($groupinfo.DisplayName)" -ForegroundColor Red
+                }
+            }
+
+            else
+            {
+                Write-host "User $member does not exist on Azure AD"
+            }
+        }
+
+        #Write-host  "All these members $member were added to the group $($groupinfo.DisplayName) $membersinfo"
+    
+    }
+
+
+}
+else
+{
+    Write-Output "Input file not found"
+}

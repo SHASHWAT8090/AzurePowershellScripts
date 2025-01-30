@@ -1,0 +1,23 @@
+
+Write-Host "Find all the DNA Groups." -ForegroundColor Green
+$allgrouplist = Get-AzureAdGroup -All $true | Where-Object { $_.DisplayName -like '' }
+Write-Host "Total $($allgrouplist.Count) DNA Groups found" -ForegroundColor Green
+if (Test-Path "C:\Users\shashwat.s.kumar2\Desktop\PowerShell Scripts\MCStrategic\test_temp.csv") {
+    Write-Host "Let's import the input file." -ForegroundColor Green
+    $groups = Import-Csv "C:\Users\shashwat.s.kumar2\Desktop\PowerShell Scripts\MCStrategic\test_temp.csv"
+    Write-Host "Imported Data from input file." -ForegroundColor Green
+    Get-date
+    foreach ($group in $groups) {
+        $members = $group.members.split(";")
+        $groupinfo = $allgrouplist | Where-Object { $_.Displayname -like $group.Groups }
+        $memberlist = Get-AzureAdGroupOwner -ObjectId $groupinfo.ObjectId -All $true
+        foreach ($member in $members) {
+            if ($memberlist.UserPrincipalName -contains $member) {
+                Write-Host "$member exists in the group $($groupinfo.DisplayName)" -ForegroundColor Green
+            }
+            else {
+                Write-Host "$member does not exists in the group $($groupinfo.DisplayName)" -ForegroundColor Red
+            }
+        }
+    }
+}

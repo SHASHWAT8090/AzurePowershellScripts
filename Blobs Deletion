@@ -1,0 +1,7 @@
+#Inputs here
+$storageAccount = ""
+$container = ""
+$folder = ""
+#End of inputs
+$context = New-AzStorageContext $storageAccount
+Get-AzStorageBlob -Container $container -context $context -prefix $folder | Remove-AzStorageBlob
